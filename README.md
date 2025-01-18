@@ -25,7 +25,7 @@ static CPU_ID: usize = 0;
 // initialize per-CPU data for 4 CPUs.
 percpu::init(4);
 // set the thread pointer register to the per-CPU data area 0.
-percpu::set_local_thread_pointer(0);
+percpu::init_percpu_reg(0);
 
 // access the per-CPU data `CPU_ID` on the current CPU.
 println!("{}", CPU_ID.read_current()); // prints "0"
@@ -38,26 +38,27 @@ Currently, you need to **modify the linker script manually**, add the following 
 ```text,ignore
 . = ALIGN(4K);
 _percpu_start = .;
+_percpu_end = _percpu_start + SIZEOF(.percpu);
 .percpu 0x0 (NOLOAD) : AT(_percpu_start) {
     _percpu_load_start = .;
     *(.percpu .percpu.*)
     _percpu_load_end = .;
     . = _percpu_load_start + ALIGN(64) * CPU_NUM;
 }
-. = _percpu_start + SIZEOF(.percpu);
+. = _percpu_end;
 ```
 
 ## Cargo Features
 
 - `sp-naive`: For **single-core** use. In this case, each per-CPU data is
-just a global variable, architecture-specific thread pointer register is
-not used.
+  just a global variable, architecture-specific thread pointer register is
+  not used.
 - `preempt`: For **preemptible** system use. In this case, we need to disable
-preemption when accessing per-CPU data. Otherwise, the data may be corrupted
-when it's being accessing and the current thread happens to be preempted.
+  preemption when accessing per-CPU data. Otherwise, the data may be corrupted
+  when it's being accessing and the current thread happens to be preempted.
 - `arm-el2`: For **ARM system** running at **EL2** use (e.g. hypervisors).
-In this case, we use `TPIDR_EL2` instead of `TPIDR_EL1`
-to store the base address of per-CPU data area.
+  In this case, we use `TPIDR_EL2` instead of `TPIDR_EL1`
+  to store the base address of per-CPU data area.
 
 ## Note for RISC-V
 

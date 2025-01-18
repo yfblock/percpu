@@ -12,13 +12,13 @@ keywords.workspace = true
 categories.workspace = true
 
 [features]
+default = []
+
 # For single CPU use, just make the per-CPU data a global variable.
 sp-naive = ["percpu_macros/sp-naive"]
 
 # Whether the system enables preemption.
 preempt = ["percpu_macros/preempt", "dep:kernel_guard"]
-
-default = []
 
 # ARM specific, whether to run at the EL2 privilege level.
 arm-el2 = ["percpu_macros/arm-el2"]
